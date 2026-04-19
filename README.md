@@ -15,11 +15,15 @@ on [genev.dev](https://genev.dev).
 | Gson            | `com.google.code.gson:gson`                       | `fromJson(Reader)` on large input  |
 | Fastjson2       | `com.alibaba.fastjson2:fastjson2`                 | `parseObject(byte[], Class)`       |
 | JSON-B / Yasson | `org.eclipse:yasson` + `org.eclipse.parsson:parsson` | Reused `Jsonb` instance         |
-| simdjson-java   | `org.simdjson:simdjson-java`                      | On-demand API, reused parser       |
+| DSL-JSON        | `com.dslplatform:dsl-json`                        | Reflection-free, byte-array native |
 | **custom byte decoder** | (this repo, `dev.genev.json.decoder`)     | Zero-allocation fast path          |
 
-Explicitly excluded: Moshi (predominantly Kotlin/Android, not server-Java
-territory), jsoniter (effectively unmaintained since 2018).
+Explicitly excluded:
+- simdjson-java was the original pick; its current releases only run on x86
+  (AVX2/AVX-512), so it won't load on Apple Silicon or other ARM hosts.
+  DSL-JSON takes its slot here.
+- Moshi is predominantly Kotlin/Android.
+- jsoniter is effectively unmaintained since 2018.
 
 ## Payloads
 
@@ -35,7 +39,7 @@ and are read once at JMH trial setup.
 
 ### Prerequisites
 
-- JDK 21
+- JDK 21 (Temurin 21 is known to work)
 - Maven 3.9+
 
 ### One-liner

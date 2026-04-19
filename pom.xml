@@ -31,7 +31,7 @@
         <fastjson2.version>2.0.53</fastjson2.version>
         <yasson.version>3.0.4</yasson.version>
         <parsson.version>1.1.7</parsson.version>
-        <simdjson.version>0.4.0</simdjson.version>
+        <dsljson.version>2.0.2</dsljson.version>
 
         <uberjar.name>benchmarks</uberjar.name>
     </properties>
@@ -88,11 +88,11 @@
             <version>${parsson.version}</version>
         </dependency>
 
-        <!-- simdjson-java -->
+        <!-- DSL-JSON (reflection-free fast JSON for JVM) -->
         <dependency>
-            <groupId>org.simdjson</groupId>
-            <artifactId>simdjson-java</artifactId>
-            <version>${simdjson.version}</version>
+            <groupId>com.dslplatform</groupId>
+            <artifactId>dsl-json</artifactId>
+            <version>${dsljson.version}</version>
         </dependency>
     </dependencies>
 

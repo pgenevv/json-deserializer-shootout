@@ -8,8 +8,6 @@ cd "$(dirname "$0")"
 mvn -q -DskipTests package
 
 java \
-  --add-modules jdk.incubator.vector \
-  --enable-native-access=ALL-UNNAMED \
   -jar target/benchmarks.jar \
   -bm thrpt,sample \
   -prof gc \

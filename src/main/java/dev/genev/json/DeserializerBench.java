@@ -1,6 +1,8 @@
 package dev.genev.json;
 
 import com.alibaba.fastjson2.JSON;
+import com.dslplatform.json.DslJson;
+import com.dslplatform.json.runtime.Settings;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.gson.Gson;
@@ -20,16 +22,12 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
-import org.simdjson.JsonValue;
-import org.simdjson.SimdJsonParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,7 +61,7 @@ public class DeserializerBench {
     ObjectReader jacksonOrderBookReader;
     Gson gson;
     Jsonb jsonb;
-    SimdJsonParser simdjson;
+    DslJson<Object> dslJson;
 
     // ---- custom-decoder reusables -----------------------------------------
 
@@ -85,7 +83,10 @@ public class DeserializerBench {
 
         gson = new Gson();
         jsonb = JsonbBuilder.create();
-        simdjson = new SimdJsonParser();
+        // Runtime-reflection mode: no annotation processor required, still
+        // faster than Jackson/Gson on small payloads because DSL-JSON avoids
+        // the intermediate tree.
+        dslJson = new DslJson<>(Settings.withRuntime().includeServiceLoader());
 
         byteTickDecoder = new ByteTickDecoder();
         byteOrderBookDecoder = new ByteOrderBookDecoder();
@@ -130,17 +131,8 @@ public class DeserializerBench {
     }
 
     @Benchmark
-    public void tick_simdjson(Blackhole bh) {
-        JsonValue v = simdjson.parse(tickBytes, tickBytes.length);
-        // Pull each field to force the parser to actually visit it; the
-        // on-demand API would otherwise skip unread fields.
-        bh.consume(v.get("symbol").asString());
-        bh.consume(v.get("bid").asDouble());
-        bh.consume(v.get("ask").asDouble());
-        bh.consume(v.get("bidSize").asLong());
-        bh.consume(v.get("askSize").asLong());
-        bh.consume(v.get("ts").asLong());
-        bh.consume(v.get("seq").asLong());
+    public Tick tick_dsljson() throws IOException {
+        return dslJson.deserialize(Tick.class, tickBytes, tickBytes.length);
     }
 
     @Benchmark
@@ -181,22 +173,8 @@ public class DeserializerBench {
     }
 
     @Benchmark
-    public void ob_simdjson(Blackhole bh) {
-        JsonValue v = simdjson.parse(orderBookBytes, orderBookBytes.length);
-        bh.consume(v.get("symbol").asString());
-        bh.consume(v.get("ts").asLong());
-        bh.consume(v.get("seq").asLong());
-        walkLevels(v.get("bids"), bh);
-        walkLevels(v.get("asks"), bh);
-    }
-
-    private static void walkLevels(JsonValue side, Blackhole bh) {
-        Iterator<JsonValue> it = side.arrayIterator();
-        while (it.hasNext()) {
-            JsonValue lvl = it.next();
-            bh.consume(lvl.get("price").asDouble());
-            bh.consume(lvl.get("size").asLong());
-        }
+    public OrderBook ob_dsljson() throws IOException {
+        return dslJson.deserialize(OrderBook.class, orderBookBytes, orderBookBytes.length);
     }
 
     @Benchmark

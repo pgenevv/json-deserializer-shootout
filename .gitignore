@@ -7,3 +7,5 @@ target/
 .vscode/
 .DS_Store
 .mvn/wrapper/maven-wrapper.properties
+dependency-reduced-pom.xml
+smoke.json
