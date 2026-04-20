@@ -39,12 +39,14 @@ and are read once at JMH trial setup.
 
 ### Prerequisites
 
-- JDK 21 (Temurin 21 is known to work)
-- Maven 3.9+
+- **JDK 21** on your `PATH` (or set `JAVA_HOME`). Temurin 21 is known to work.
+- **No global Maven required.** The repo ships `mvnw`, which downloads Maven
+  3.9.9 into `~/.m2/wrapper` the first time you run it.
 
 ### One-liner
 
 ```bash
+chmod +x run.sh mvnw   # first time only, if your git checkout lost +x
 ./run.sh
 ```
 
@@ -56,20 +58,19 @@ the blog post's chart script consumes.
 ### Manual invocation
 
 ```bash
-mvn -DskipTests package
-java --add-modules jdk.incubator.vector \
-     --enable-native-access=ALL-UNNAMED \
-     -jar target/benchmarks.jar \
+./mvnw -DskipTests package
+java -jar target/benchmarks.jar \
      -bm thrpt,sample \
      -prof gc \
      -f 2 -wi 5 -i 10 \
+     -w 1s -r 1s \
      -rf json -rff results.json
 ```
 
 To narrow to a single benchmark:
 
 ```bash
-java ... -jar target/benchmarks.jar "dev.genev.json.DeserializerBench.tick_customByte"
+java -jar target/benchmarks.jar "dev.genev.json.DeserializerBench.tick_customByte"
 ```
 
 ## Results

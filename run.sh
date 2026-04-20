@@ -5,7 +5,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-mvn -q -DskipTests package
+./mvnw -q -DskipTests package
 
 java \
   -jar target/benchmarks.jar \
